@@ -1,0 +1,569 @@
+---
+title: "SMI205 Replication Project (2023)"
+author: '200382007'
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_download: yes
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+---
+
+```{r start, include=FALSE}
+# Opening key libraries first
+library(rmarkdown)
+library(knitr)
+```
+
+# A Multilevel Analysis of the Influence of LGBT+ Activism in Bosnia and Herzegovina
+
+### Rpubs link: https://rpubs.com/sn200382007/1048441
+### GitHub Repository: [add url here if you have created a data or code repository, if not delete this line]
+### Study Preregistration form: https://rpubs.com/sn200382007/1043913
+
+## Information about this replication project
+* Replication project based on paper [add full citation here and link to its published online version]
+* Replication method (select one from below):
+  + Used replication package available at [add citation + repository link here]
+  + Used materials obtained from authors
+  + Own replication following methods section of the paper
+  + Other - explain
+
+## Workspace setup {.tabset .tabset-pills}
+
+### YAML settings
+
+ output: </br>
+  &nbsp; html_document: </br>
+    &nbsp;&nbsp; code_download: true </br>
+    &nbsp;&nbsp;&nbsp; toc: true </br>
+    &nbsp;&nbsp;&nbsp; toc_depth: 2 </br>
+    &nbsp;&nbsp;&nbsp; toc_float: </br>
+      &nbsp;&nbsp;&nbsp;&nbsp; collapsed: false </br>
+      &nbsp;&nbsp;&nbsp;&nbsp; smooth_scroll: true </br>
+
+### Global settings of R chunks
+
+```{r setup, include=TRUE}
+# Global options
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+```
+
+### Libraries
+
+```{r libraries, include=TRUE}
+
+#general
+library(tidyverse)
+
+#data cleaning
+library(stringi)
+
+#for maps
+library(sf)
+library(geojsonsf)
+library(ggpubr)
+
+#for modelling
+library(lme4)
+library(haven)
+library(merTools)
+library(lattice)
+
+#for presenting outputs
+library(sjPlot)
+library(glmmTMB)
+```
+
+### Versions of used packages
+
+```{r versions, echo=FALSE}
+# Versions of used packages
+packages <- c("rmarkdown", "knitr", "tidyverse", "stringi", "sf", "geojsonsf", "ggpubr",
+              "lme4", "haven", "merTools", "lattice", "sjPlot", "glmmTMB")
+names(packages) <- packages
+lapply(packages, packageVersion)
+```
+
+### My enviroment
+
+```{r myR, echo=FALSE}
+# What is my R version?
+version[['version.string']]
+```
+
+## 1. Introduction
+
+Ayoub et al.’s paper Pride amidst Prejudice (2021a) studied the effect that the first Pride Parade held in Bosnia and Herzegovina had on support for LGBT+ people across the country, finding a positive change in attitude within Sarajevo but no diffusion effect nor backlash in the rest of the country. I previously conducted a replication using the same data and same methods to test the paper’s verifiability; my results fully supported the outcomes of the original paper. Although Ayoub et al. (2021a) were interested in studying whether the effect of Pride spread outside of Sarajevo, they split their linear regression models only by Sarajevo and rest of Country. This limited the ability to study the diffusion effect as it grouped municipalities that bordered Sarajevo - and may have residents who commute into the city thus blurring the boundaries of the city limits - with municipalities in the furthest reaches of the country. Additionally, there may be differences in response within the city of Sarajevo, as the Pride took place only within the Centar municipality: individuals from other Sarajevo municipalities could choose to travel to the Pride whereas individuals within Centar would be affected as the default. 
+
+Pride Parades can be an important tool for LGBT+ activists to disrupt the heteronormative order, increase the community’s visibility, and create a shared community identity (Browne, 2007; Kaygalak-Celebi et al., 2019). Existing qualitative research has been conducted primarily within socially liberal, accepting societies, interviewing attendees on their experiences (eg. Kaygalak-Celebi et al., 2019). Ayoub et al.’s research is therefore vital to the field as it examines the risk of increasing visibility within a socially conservative society, allowing us to determine whether Prides are effective and worth the risk. This extension of their work will further examine the efficacy of Prides, and look at how municipal contexts affect an individual’s initial attitude and response to Pride. While the original paper found Pride to have a positive effect on acceptance within Sarajevo as a whole, a relatively more negative response within the Centar municipality could suggest a successful destabilisation of the heteronormative society that would have allowed LGBT+ individuals to express their own identities among their communities in a way that antagonised the general public, whereas a more positive response could indicate the creation of positive location based memories for those who attended (Waitt and Stapel, 2011). 
+
+With increased visibility comes the risk of heightened intolerance, which may be particularly the case in Bosnia and Herzegovina (Underwood, 2011). The country has a strong presence of ethnonationalism and religious separatism, which political leaders use to their advantage to exacerbate an ‘us vs them’ attitude (Swimelar, 2020). Hadzic et al.(2020) study how a municipality’s collective memory - such as of casualty of the Bosnian Civil War - can lead to polarising views and high patterns of ethnocentric voting, which may also affect acceptance of other minority groups such as LGBT+ people, as nationalism rejects competing or alternative identities (Swimelar, 2020). In a study of homophobia experienced within US schools, Kosciw et al. (2009) found influences from community characteristics such as average levels of education and religion, showing the effect a community can have on an individual’s attitudes. In this extension, I will investigate how individuals are affected by characteristics of municipalities, and whether different individual level factors such as religiosity have the same effect everywhere or if the effect of an individual characteristic can vary dependent on the community they’re embedded within.
+
+## 2. Data and methods
+
+### 2.1. Data
+
+```{r Data}
+#Data
+#Read data and shapefile
+rep_data <- read_dta('Data/Pride_Amid_Prejudice_replication data_final.dta')
+shape <- geojson_sf("Data/geoBoundaries-BIH-ADM2.geojson")
+
+#Remove non-Latin characters and macth name discrepencies, eg.
+shape$shapeName = stri_trans_general(str = shape$shapeName, id = "Latin-ASCII")
+shape[15, "shapeName"] <- "Bosanska Gradiska (Gradiska)"
+```
+
+```{r renaming, include=FALSE}
+shape[18, "shapeName"] <- "Bosanska Dubica (Kozarska Dubica)"
+shape[20, "shapeName"] <- "Bosanski Novi (Novi Grad)"
+shape[22, "shapeName"] <- "Samac (Bosanski Samac)"
+shape[23, "shapeName"] <- "Bosansko Grahovo (Grahovo)"
+shape[1, "shapeName"] <- "Brcko"
+shape[33, "shapeName"] <- "Centar Sarajevo"
+shape[48, "shapeName"] <- "Foca (Srbinje)"
+shape[53, "shapeName"] <- "Gornji Vakuf - Uskopolje"
+shape[74, "shapeName"] <- "Kupres (FBiH)"
+shape[89, "shapeName"] <- "Novi Grad Sarajevo"
+shape[97, "shapeName"] <- "Pale (RS)"
+shape[104, "shapeName"] <- "Prozor (Prozor-Rama)"
+shape[114, "shapeName"] <- "Skender Vakuf (Knezevo)"
+shape[92, "shapeName"] <- "Stari Grad Sarajevo"
+shape[125, "shapeName"] <- "Trnovo (FBiH)"
+shape[139, "shapeName"] <- "Zivince"
+```
+
+```{r merging and recoding}
+#Merge survey data and shapefile
+rep_shape <- inner_join(rep_data, shape, by = join_by("municipalitystr" == "shapeName"))
+#Remove observations with missing data
+rep_shape_m <- rep_shape[complete.cases(rep_shape[,c('ethnocentric', 'religious', 'Education')]),]
+#Rescale variables
+rep_shape_m$vote_share_10 <- rep_shape_m$ethnic_vote_share/10
+rep_shape_m$age_10 <- rep_shape_m$age/10
+```
+
+
+This extension uses the data collected by Ayoub et al. and provided on the Harvard Dataverse Repository as part of the replication materials (Ayoub et al., 2021b). The questionnaire and panel data totals to 2,430 respondents after accounting for initial missingness; these responses are spread across 70 of the 142 total municipalities. The original study made use of some municipality data provided by Hadzic et al. (2017); I suggested in the pre-registration that I would include more of these variables, but on accessing the full dataset I determined there were no further variables that could be relevant to this study. To assist with spatial analysis of the diffusion effect, I use shapefile data as provided by the United Nations’ Office for the Coordination of Humanitarian Affairs’ Humanitarian Data Exchange service (Runfola et al., 2020). 
+
+
+```{r distribution of respondents, include=FALSE}
+###Distribution of Respondents
+#count respondents by municipality
+resp_muni <- as.data.frame(table(rep_data$municipalitystr))
+#merge 
+resp_muni_shape <- full_join(resp_muni, shape, by = join_by("Var1" == "shapeName"))
+#remove the blank municipality value, turn NAs to 0
+resp_muni_shape <- resp_muni_shape[-(1),]
+resp_muni_shape$Freq <- resp_muni_shape$Freq %>% replace(is.na(.),0)
+```
+
+
+```{r distributions plot, echo=FALSE, fig.show='hold', out.width='50%'}
+#histogram of number of respondents by municipality
+ggplot(resp_muni_shape) +
+    aes(x = Freq) +
+      geom_histogram(binwidth = 10) + theme_classic() +
+    labs(x = "Number of Respondents", 
+        y = "Frequency", 
+        title = "Figure 1. Number of \nRespondents per Municipality\n")
+
+#map of number of respondents by municipality
+ggplot(resp_muni_shape) +
+   aes(geometry = geometry, fill = cut(Freq,
+                                      breaks = c(-1,0,10,20,30,40,50,320), 
+                                      labels = c("0", "1 to 10", "11 to 20", "21 to 30", "31 to 40", 
+                                                 "41 to 50", "50+"))) +
+      geom_sf() +
+    scale_fill_grey(start = 1, end = 0.1) +
+    labs(fill = "", title = "Figure 2. Number of Respondents\n") + theme_void()
+
+#ggarrange(response_histogram, response_map, ncol = 2) %>% annotate_figure(top = "Number of Respondents by Municipality")
+```
+
+
+The outcome variable is measured on a scale of 1 to 4, where 4 is strongly support Pride and 1 is strongly oppose. The predictor is a binary variable for whether the response was from before or after the Pride event. At Level 1 (individual) are dummies for unemployed, gender (male), and EU vote. Religiosity is measured from 1 to 3 (3 = very religious). Ethnic identity is recorded as Bosnian, Serb, Croat, or Bosniak, and recoded as dummies with Bosnian as the reference category. Education level is measured from 1 to 11, where 3 is left school at 15 and 11 indicates a doctorate. I have recoded age to one tenth of its original value to aid with interpretation, so 56 years old becomes 5.6. At Level 2 (municipality) I have recoded ethnic vote share from a percentage to 0 to 10, where 56% = 5.6. Casualty is the proportion of the municipality population dead or missing following the Bosnian Civil War as a measure of experience of wartime violence. 
+
+In order to combine the survey data with the shapefile I replaced all non Latin characters in municipality names then combed through to find and rename discrepancies (e.g. “Bosnanska Gradiška/Gradiška” became "Bosanska Gradiska (Gradiska)”); this allowed the two datasets to be merged by matching municipality names. I then omitted observations that missed data for any of the variables I was using in my models, leaving me with 2,343 total observations.
+
+
+```{r variable facet, echo=FALSE}
+man <- ggplot(rep_shape_m) +
+  aes(x = as.character(Men)) +
+  geom_bar() + scale_x_discrete("Male") + theme_minimal()
+
+#unemployed + Men + voteeu + ethnocentric + religious + Bosniak + Education + vote_share_10 + log_pop_density + age + casualty
+
+unemp <- ggplot(rep_shape_m) +
+  aes(x = as.character(unemployed)) +
+  geom_bar() + scale_x_discrete("Unemployed") + theme_minimal()
+
+voteeu <- ggplot(rep_shape_m) +
+  aes(x = as.character(voteeu)) +
+  geom_bar() + scale_x_discrete("Vote EU") + theme_minimal()
+
+ethno <- ggplot(rep_shape_m) +
+  aes(x = as.character(ethnocentric)) +
+  geom_bar() + scale_x_discrete("Ethnocentric") + theme_minimal()
+
+relig <- ggplot(rep_shape_m) +
+  aes(x = as.character(religious)) +
+  geom_bar() + scale_x_discrete("Religiosity") + theme_minimal()
+
+edu <- ggplot(rep_shape_m) +
+  aes(x = Education) +
+  geom_bar() + theme_minimal()
+
+vote <- ggplot(rep_shape_m) +
+  aes(x = ethnic_vote_share) +
+  geom_bar() + scale_x_binned("Ethnic Vote Share") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+
+pop <- ggplot(rep_shape_m) +
+  aes(x = log_pop_density) +
+  geom_bar() + scale_x_binned("Log Population \nDensity") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+ 
+age <-  ggplot(rep_shape_m) +
+  aes(x = age) +
+  geom_bar() + scale_x_binned("Age") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+
+casualty <- ggplot(rep_shape_m) +
+  aes(x = log(casualty)) +
+  geom_histogram(binwidth = 0.5) + theme_minimal()
+
+ethnic <- ggplot(rep_shape_m) +
+  aes(x = as.character(ethnicity)) +
+  geom_bar() + scale_x_discrete("Ethnicity", limits = c("1","2","3","4","5"),
+                                labels = c("Bosnian", "Croat", "Serb", "Bosniak","other")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, hjust = 1)) + theme_minimal()
+
+treat <- ggplot(rep_shape_m) +
+  aes(x = as.character(treatment)) +
+  geom_bar() + scale_x_discrete("Treatment") + theme_minimal()
+
+ggarrange(treat, man, voteeu, ethno,
+          unemp, relig, casualty, ethnic,
+          pop, age, edu, vote,
+          nrow = 3, ncol = 4) %>% annotate_figure(top = "Figure 3: Distributions of Variables")
+```
+
+
+### 2.2. Methods
+This extension is a test of the robustness of the original paper’s findings as I am using the same data but different methods (Freese and Peterson, 2017). Whereas Ayoub et al. (2021a) used single level ordinary least squares regression and compared models for within Sarajevo to the rest of the country, I am using a two level random slopes model. This allows for the full range of sociodemographic variables to be considered at L1 alongside L2 variables about the municipality overall. I begin with a null model and add variables individually, removing ones that are not statistically significant. When adding each L1 variable I will also test whether it fits better as a fixed or random effect, using AIC and Anova tests to determine comparative fit. Testing variables for random effects is important to understand how a community may affect how an individual’s characteristic may influence them. For example, the religiosity of an individual in a municipality with inclusive churches and mosques may have a different affect on them compared to if they lived in a community with strictly orthodox religions. The two level model is also useful to examine whether the effect of holding the Pride event diffused across the country or was seen only within Sarajevo - if at all. It also allows us to identify other cities which may be contextually more similar to Sarajevo and analyse whether they responded in a similar way or whether the effect was indeed geographically centred around the Pride - Swimelar (2020) describes how LGBT+ activism has begun to grow in other Bosnian cities. Allowing slopes to be random means we can see which municipalities became more supportive (reacted positively) and which saw backlash (reacted negatively). The grouping used in the original study found that overall Sarajevo started most supportive and became even more so, whereas the rest of the country saw minimal effect (Ayoub et al., 2021a). This obscures positive responses across the rest of the country as well as variation within Sarajevo; if the pattern of the most supportive becoming even more so holds outside of Sarajevo, then it is possible that there may be some fanning out where the least supportive react negatively which could help identify possible areas for backlash (Figure 4).
+
+
+
+```{r null model, include=FALSE}
+###null model
+#need to figure out which data to use to make the plot work
+null.m <- lmer(supportpride ~ (1|municipalitystr), data = rep_shape_m, na.action="na.exclude")
+summary(null.m)
+pred.null.m <- fitted(null.m)
+
+ggplot(rep_shape_m) +
+  aes(x=treatment, y = pred.null.m, group = municipalitystr) +
+  geom_line() +
+  scale_color_continuous(guide = 'none') 
+
+VPC = 0.1036/(0.1036+0.8145)
+#=11.3% variation explained by municipality. more variation at individual level
+```
+
+```{r random slopes, echo=T, results='hide'}
+###random slopes models
+slopes.m <- lmer(supportpride ~ treatment + (1 + treatment|municipalitystr), data = rep_shape_m, na.action="na.exclude")
+```
+
+
+```{r random slopes plots, echo=FALSE}
+pred.slopes.m <- fitted(slopes.m)
+
+ggplot(rep_shape_m) +
+  aes(x=treatment, y = pred.slopes.m, group = municipalitystr) +
+  geom_line() +
+  scale_color_continuous(guide = 'none') + theme_minimal() +
+  labs(tag = "Figure 4", title = "Random Effects Estimates for Treatment Variable")
+#plot shows fanning out: most supportive become more supportive; least become less
+#add highlight to this to show sarajevo municipalities
+```
+
+
+
+
+```{r models 1 to 3, include=FALSE}
+####gender----
+slopes.1a <- lmer(supportpride ~ treatment + Men + (1 + treatment|municipalitystr),
+                  data = rep_shape_m, na.action="na.exclude")
+
+slopes.1b <- lmer(supportpride ~ treatment + Men + (1 + treatment + Men | municipalitystr),
+                  data = rep_shape_m, na.action="na.exclude")
+
+anova(slopes.1a, slopes.1b)
+#AIC and Chi show no significant evidence of the effect of gender varying by municipality, 
+#slope.1a better fit
+
+####unemployed----
+slopes.2a <- lmer(supportpride ~ treatment + unemployed + Men + (1 + treatment|municipalitystr),
+                  data = rep_shape_m, na.action="na.exclude")
+
+anova(slopes.2a, slopes.1a) #better than 1a
+
+####voteeu----
+(slopes.3a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + (1 + treatment|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+(slopes.3b <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + (1 + treatment + voteeu|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+anova(slopes.3a, slopes.3b) #3a better
+```
+
+```{r model 4 example, include=FALSE}
+#Example of testing for random effects
+(slopes.4a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + (1 + treatment|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+(slopes.4b <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + (1 + treatment + ethnocentric|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+```
+
+
+```{r model 4 include, echo=TRUE}
+anova(slopes.4b, slopes.4a) #4b better, effect of ethnocentrism varies by municipality
+```
+
+
+```{r model 4 , include=FALSE}
+summary(slopes.4b) #is the effect significant?
+anova(slopes.3a, slopes.4b) #better than the earlier model
+```
+
+
+```{r models 5 to 11, include=FALSE}
+
+####religiosity----
+(slopes.5a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + (1 + treatment + ethnocentric|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+(slopes.5b <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+anova(slopes.5a, slopes.5b) 
+
+####Bosniak, Croat, Serb; Bosnian as reference----
+(slopes.6a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Croat + Serb + (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+(slopes.6b <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Croat + Serb + (1 + treatment + ethnocentric + religious + Bosniak + Serb + Croat|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+anova(slopes.6a, slopes.6b) #not significantly better, use 6a
+summary(slopes.6a) #Croat not significant, omit from further models
+
+####education----
+(slopes.7a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Serb + Education + (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+
+####ethnic vote share----
+(slopes.8a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Serb + Education + vote_share_10 + (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+
+summary(slopes.8a)
+#when account for vote share, serb no longer significant
+cor.test(rep_shape_m$vote_share_10, rep_shape_m$Serb) #strong correlation between vote share and serb
+#remove serb from now on
+
+####age----
+(slopes.9a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Education + vote_share_10 + age_10 + (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude"))
+summary(slopes.9a) #age not significant, remove from future models
+
+####casualty----
+(slopes.10a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                      Bosniak + Education + vote_share_10 + casualty + (1 + treatment + ethnocentric + religious|municipalitystr),
+                    data = rep_shape_m, na.action="na.exclude"))
+summary(slopes.10a) #casualty not significant
+
+####population density----
+slopes.11a <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + religious + 
+                     Bosniak + Education + vote_share_10 + log_pop_density +
+                     (1 + treatment + ethnocentric + religious|municipalitystr),
+                   data = rep_shape_m, na.action="na.exclude")
+summary(slopes.11a) #not significant 
+```
+
+```{r final model}
+slopes.final <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethnocentric + 
+                       religious + Bosniak + Education + vote_share_10 + 
+                        (1 + treatment + ethnocentric + religious|municipalitystr),
+                           data = rep_shape_m, na.action="na.exclude")
+```
+
+
+```{r outputs all models, echo=FALSE}
+tab_model(slopes.1a, slopes.2a, slopes.3a, slopes.4b, slopes.5b, slopes.6a, 
+          slopes.7a, slopes.8a, slopes.9a, slopes.10a, slopes.11a,
+          show.icc = F, show.ci = F, show.p = F, p.style = "stars",
+          dv.labels = c("1","2", "3", "4","5","6","7","8","9","10","11"),
+          show.r2 = F, title = "Table 1. Fixed and Random Effects for Models 1 to 11",
+          pred.labels = c("Intercept", "Treatment","Unemployed","Male","Vote EU", "Ethnocentric", "Religiosity", "Bosniak", "Croat", "Serb", "Education","Ethnic Vote Share", "Age","Casualty", "Log Population\nDensity"))
+```
+
+## 3. Results
+
+
+
+```{r add outputs to shape data, include=FALSE}
+##Results----
+
+###
+pred.slopes.final <- fitted(slopes.final)
+rep_shape_m$pred.slopes.final <- pred.slopes.final
+rep_shape_p <- full_join(rep_shape_m, shape, by = join_by("municipalitystr" == "shapeName"))
+rep_shape_p <- subset(rep_shape_p, select = (-c(shapeISO.x, shapeGroup.x, shapeType.x, shapeID.x, geometry.x)))
+rep_shape_p[["pred.slopes.final"]][is.na(rep_shape_p[["pred.slopes.final"]])] <- 0
+
+
+###Regression Outputs----
+slopes.final.est <- REextract(slopes.final)
+slopes.final.est <- slopes.final.est %>% rename(intercept = `(Intercept)`, intercept_se = `(Intercept)_se`)
+```
+
+
+```{r outputs, echo=FALSE}
+
+tab_model(slopes.final, show.icc = F, p.style = "stars", title = "Table 2. Fixed and Random Effects for Final Model", dv.labels = "Support for LGBT+",
+          pred.labels = c("Intercept", "Treatment","Unemployed","Male","Vote EU", "Ethnocentric", "Religiosity", "Bosniak", "Education","Ethnic Vote Share"))
+```
+
+
+The final model found that while some of the L2 random effects were significant, the effect of Pride on support for LGBT+ people across the country was not significant. The random effects on the intercept show that Zavdovici and Ilidza are significantly less supportive of LGBT+ people, whereas the Sarajevo municipalities of Novo, Centar, and Novi Grad - as well as Teslic and Bihac - are significantly more supportive of Pride to begin with. Interestingly, the fourth Sarajevo municipality, Stari Grad, was more negative than average, although this was not statistically significant. The random effects of treatment (pre- versus post- Pride) appeared to ‘fan out’ (Figure 4), and a Pearson’s correlation test showed a positive relationship between intercept and treatment meaning more accepting municipalities responded more positively while some unsupportive municipalities reacted negatively. No conclusions can be drawn from this, however, as Pride occurring (treatment) was not found to be statistically significant at the 95% level. 
+
+
+```{r outputs2, echo=FALSE, fig.width=7, fig.height=10}
+plot_model(slopes.final, type = "re", dot.size = 0.8, line.size = 0.5, vline.color = '#000000', title = "Figure 5. Random Effects of Final Model")
+```
+
+
+
+Both ethnocentrism and religiosity were found to be significant as random effects, showing that religious and ethnic communities are not monolithic but their effect on individuals varies by municipality. Further research could be completed to uncover what factors within religious communities cause these differences as most existing research finds that increased religiosity decreases acceptance of LGBT+ people (Sremac et al., 2015). 
+
+
+
+
+```{r outputs3, echo=FALSE, fig.width=5, fig.height=5}
+plot_model(slopes.final, type = "est", dot.size = 0.8, line.size = 0.5, vline.color = '#000000', grid.breaks = 0.1, axis.labels = c("Ethnic Vote Share", "Education", "Bosniak","Religiosity","Ethnocentric", "Vote EU",  "Male","Unemployed", "Treatment"), 
+            title = "Figure 6. Fixed Effects of Final Model")
+```
+
+
+In terms of fixed effects, being unemployed and being male each decreased support for LGBT+ people (measured from 1-4) by 0.11. This aligns with literature around how radicalisation and nationalism take advantage of unemployment to pass blame and stoke an ‘us versus them’ rhetoric, while also promoting ideas of patriarchy and family structure (Swimelar, 2020). Following on from this, voting in favour of the EU was associated with being 0.19 more supportive; this corresponds with studies of the social changes that post-Soviet and post-Yugoslav societies have undergone before joining the EU as hosting a Pride event is commonly observed to be a major step towards this (Swimelar, 2017). Another indicator of being more receptive to LGBT+ people was education: with each further level of education achieved, individuals were 0.07 more supportive, meaning someone with a doctorate (coded as 11) was on average 0.56 more supportive than someone who left school at 15 (after primary education, coded as 3). In the other direction, Bosniaks were found to be 0.35 less supportive than Bosnians as the reference category, but Croats and Serbs were not found to differ significantly in support compared to Bosnians. Finally, the fixed effect of ethnic vote share found that for every extra 10% of the municipality vote went to ethnonationalist parties, individuals within that municipality were 0.11 less supportive (eg. in a municipality with 80% ethnic vote share individuals will be an estimated 0.33 less supportive than in a municipality with 50% ethnic vote). This is backed up by Swimelar (2020) who document how nationalist politicians use LGBT+ issues as an enemy to unite against and gain legitimacy by claiming to defend the national identity that LGBT+ people would purportedly undermine. 
+
+In making this model, several variables were tested but found not to have a significant effect. Age was not found to have a significant effect on support for LGBT+ people, which contrasts to the findings of the original paper. This may be due to demographic changes such as increased education, reduced religiosity or ethnocentrism that may be prevalent among younger people and account for any difference in support found. It may also be accounted for by municipality, as young supportive people may relocate to cities for work and opportunities, so effects may get absorbed by other variables. Population density was not found to be significant which was somewhat surprising as theories around socialisation tend to find that the more exposure to different people one has, the more inclusive one is compared to those in sparsely populated regions who may be isolated or part of insulated communities (Maxwell, 2019). Level of casualty during the Civil War was not found to have a direct effect on acceptance, though it may still indirectly have an effect as Hadzic et al. found that the collective memories of casualty could foster an ‘us versus them’ attitude which would then lead to increased ethnic vote share which was found to have an effect on support for Pride.
+
+
+```{r map outputs, include=FALSE}
+###Maps----
+slopes.final.est_shape <- left_join(shape, slopes.final.est, by = join_by("shapeName" == "groupID"))
+slopes.final.est_shape[is.na(slopes.final.est_shape)] <- 0
+
+
+#2.447919 is fixed intercept; 0.091094 fixed treatment
+before_map <- ggplot(slopes.final.est_shape) +
+  aes(fill = intercept+2.447919) +
+  geom_sf() + 
+  scale_fill_distiller(type = "div", palette = "PRGn", limits = c(1,4), name = "Support\nBefore Pride ") +
+  theme_void()
+
+change_map <- ggplot(slopes.final.est_shape) +
+  aes(fill = treatment+0.091094) +
+  geom_sf() + 
+  scale_fill_distiller(type = "div", palette = "PRGn", limits = c(-0.3,0.3), name = "Change in\nSupport") + 
+  theme_void()
+
+after_map <- ggplot(slopes.final.est_shape) +
+  aes(fill = intercept+treatment+2.447919+0.091094) +
+  geom_sf() + 
+  scale_fill_distiller(type = "div", palette = "PRGn", limits = c(1,4), name = "Support\nAfter Pride") +
+  theme_void()
+```
+
+
+```{r maps, echo=FALSE, fig.width=10, fig.height=3}
+ggarrange(before_map, after_map, change_map, ncol = 3) %>% annotate_figure(top = "Figure 7. Support for LGBT+ People, Before and After Pride")
+```
+
+## 4. Conclusions
+
+Overall, most indicators of municipal context did not have a significant effect on an individual’s support for LGBT+ people. However, the negative association between ethnic vote share and attitude supports Bosia and Weiss' (2013) findings on LGBT+ issues being used as a wedge to promote nationalism and ideas about shared (ethnic) identity. The significance of religiosity and ethnocentrism as random effects show that communities have some effect on individual receptiveness, but further study would be needed into how and why there is this difference. For the most part, the overall findings support those of the original paper as Pride was found to have no overall effect (in either direction) on support for LGBT+ people (Ayoub et al., 2021a). That said, we cannot come to the exact conclusions as these models no longer found that Pride had a significant effect within Sarajevo, instead finding that the city was already more supportive and had demographics that were receptive to LGBT+ people but not that Pride caused a significant shift. There is no evidence for diffusion geographically, though this may be in part due to the lack of significant effect anywhere. In summary, assuming attendees have positive experiences of Pride events (e.g. in finding shared identity and community [Kaygalak-Celebi et al., 2019]), there appears to be little downside to holding Pride - aside from a limited number of bad actors - as there is little risk of causing widespread backlash or negatively affecting opinions, even in a socially conservative society. Some aspects of community affect an individual’s attitude and receptiveness to change, though further research should be conducted to uncover how these elements can be utilised to facilitate positive change.
+
+## References
+Ayoub, P.M., Page, D. and Whitt, S. (2021a) ‘Pride amid Prejudice: The Influence of LGBT+ Rights Activism in a Socially Conservative Society’, American Political Science Review, 115(2), pp. 467–485. Available at: https://doi.org/10.1017/S0003055420001082. 
+
+Ayoub, P., Page, D. and Whitt, S. (2021b) ‘Replication Data for: Pride amid Prejudice: The Impact of LGBT+ Rights Activism in a Socially Conservative Society’. Harvard Dataverse. Available at: https://doi.org/10.7910/DVN/IROJ12.
+
+Bosia, M.J. and Weiss, M.L. (2013) ‘Political homophobia in comparative perspective’, Global homophobia: States, movements, and the politics of oppression, pp. 1–29.
+
+Bosnia and Herzegovina - Subnational Administrative Boundaries - Humanitarian Data Exchange (no date). Available at: https://data.humdata.org/dataset/geoboundaries-admin-boundaries-for-bosnia-and-herzegovina (Accessed: 20 May 2023).
+
+Browne, K. (2007) ‘A party with politics? (Re)making LGBTQ Pride spaces in Dublin and Brighton’, Social & Cultural Geography, 8(1), pp. 63–87. Available at: https://doi.org/10.1080/14649360701251817.
+
+Freese, J. and Peterson, D. (2017) ‘Replication in Social Science’, Annual Review of Sociology, 43(1), pp. 147–165. Available at: https://doi.org/10.1146/annurev-soc-060116-053450.
+
+Hadzic, D., Carlson, D. and Tavits, M. (2020) ‘How Exposure to Violence Affects Ethnic Voting’, British Journal of Political Science, 50(1), pp. 345–362. Available at: https://doi.org/10.1017/S0007123417000448.
+
+Hadzic, Dino (Washington University In St. Louis); Carlson, David (Washington University In St. Louis); Tavits, Margit (Washington University In St. Louis) (2017) ‘Replication Data for: How Exposure to Violence Affects Ethnic Voting’. Harvard Dataverse. Available at: https://doi.org/10.7910/DVN/EUAIFA.
+
+Kaygalak-Celebi, S. et al. (2019) ‘Pride festivals as a space of self-expression: tourism, body and place’, Journal of Organizational Change Management, 33(3), pp. 545–566. Available at: https://doi.org/10.1108/JOCM-01-2019-0026.
+
+Kosciw, J.G., Greytak, E.A. and Diaz, E.M. (2009) ‘Who, What, Where, When, and Why: Demographic and Ecological Factors Contributing to Hostile School Climate for Lesbian, Gay, Bisexual, and Transgender Youth’, Journal of Youth and Adolescence, 38(7), pp. 976–988. Available at: https://doi.org/10.1007/s10964-009-9412-1.
+
+Maxwell, R. (2019) ‘Cosmopolitan Immigration Attitudes in Large European Cities: Contextual or Compositional Effects?’, American Political Science Review, 113(2), pp. 456–474. Available at: https://doi.org/10.1017/S0003055418000898.
+
+Runfola et al., (2020). 'geoBoundaries: A global database of political administrative boundaries', PLoS ONE 15(4): e0231866. <https://doi.org/10.1371/journal.pone.0231866> (accessed 20/05/2023)
+
+Sremac, S. et al. (2015) ‘For the Sake of the Nations: Media, Homosexuality and Religio-Sexual Nationalisms in the Post-Yugoslav Space’, in Religious and Sexual Nationalisms in Central and Eastern Europe. Brill, pp. 52–73. Available at: https://doi.org/10.1163/9789004297791_005.
+
+Swimelar, S. (2017) ‘The Journey of LGBT Rights: Norm Diffusion and Its Challenges in EU Seeking States: Bosnia and Serbia’, Human Rights Quarterly, 39(4), pp. 910–942. Available at: https://heinonline.org/HOL/P?h=hein.journals/hurq39&i=928 (Accessed: 31 May 2023).
+
+Swimelar, S. (2020) ‘LGBT Rights in Bosnia: The Challenge of Nationalism in the Context of Europeanization’, Nationalities Papers, 48(4), pp. 768–790. Available at: https://doi.org/10.1017/nps.2019.65.
+
+Underwood, A.E.M. (2011) ‘The politics of pride’, Harvard International Review, 33(1), pp. 42–46.
+
+
+Waitt, G. and Stapel, C. (2011) ‘“Fornicating on floats”? The cultural politics of the Sydney Mardi Gras Parade beyond the metropolis’, Leisure Studies, 30(2), pp. 197–216. Available at: https://doi.org/10.1080/02614367.2010.509445.
+
+## Appendix
+
+### Appendix 1. My enviroment (full information) 
+
+```{r session}
+# Detailed information about my environment
+sessionInfo()
+```
+
+### Appendix 2. Entire R code used in the project
+
+```{r whole code, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

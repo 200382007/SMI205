@@ -12,11 +12,7 @@ This is a replication project based on Ayoub, P.M., Page, D. and Whitt, S. (2021
 
 -   *.gitignore*
 
-<<<<<<< HEAD
 -   **README.md**: this file
-=======
--   **README.md** and **README.html**: this file
->>>>>>> 6f31bb0f4316065cfbf05aa1c144e4186facf106
 
 -   **SMI205 Extension Pride amid Prejudice.Rmd:** written assignment for the project, including snippets of code and plots from the scripts included here
 
@@ -26,15 +22,15 @@ This is a replication project based on Ayoub, P.M., Page, D. and Whitt, S. (2021
 
 ### 2. Data:
 
-The datasets used are openly available for download, but are also provided within the Data folder. The 'Created' folder contains datasets that are created in the first section of the script (**1_Data_Cleaning.R**). The .zip files open to a .csv of the same name; this was a measure taken to deal with GitHub's file size limit.
+The datasets used are openly available for download, but are also provided within the Data folder. The 'Created' folder contains datasets that are created in the first section of the script (**1_Data_Cleaning.R**). 
 
 -   Created:
 
     -   **rep_data.csv:** cleaned data from Pride_Amid_Prejudice_replication data_final.dta:
-    -   **shape.zip:** cleaned shapefile data of Bosnia and Herzegovina municipal boundaries, from geoBoundaries-BIH-ADM2.geojson; names converted to Latin characters and adjusted to match the survey data
-    -   **rep_shape.zip:** merge of the shapefile data of municipality boundaries (**shape**.csv) and **rep**\_data.csv
-    -   **rep_shape_m.zip:** data used in **m**odelling
-    -   **rep_shape_p.zip:** data used in **p**lotting
+    -   **shape.csv:** cleaned shapefile data of Bosnia and Herzegovina municipal boundaries, from geoBoundaries-BIH-ADM2.geojson; names converted to Latin characters and adjusted to match the survey data
+    -   **rep_shape.csv:** merge of the shapefile data of municipality boundaries (**shape**.csv) and **rep**\_data.csv
+    -   **rep_shape_m.csv:** data used in **m**odelling
+    -   **rep_shape_p.csv:** data used in **p**lotting
 
 -   **Pride_Amid_Prejudice_replication data_final.dta:** the original dataset as accessed from <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/IROJ12>
 
@@ -64,7 +60,15 @@ The full script covers everything from **SMI205 Extension Pride amid Prejudice.R
 -   **2_Modelling.R:** creates null models, models 1-11, and the final model; comparison tests and test of significance
 -   **3_Plots.R:** creates plots used in the replication extension; output from this saved as .png in **'/Outputs'**
 
-### 5. My Environment:
+### 5. Original Replication Documentation: 
+
+The replication package for 'Pride amid Prejudice' downloaded from <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/IROJ12>
+
+### 6. SMI205-Extension-Pride-amid-Prejudice_files:
+
+Files created in the document **SMI205 Extension Pride amid Prejudice.Rmd:**
+
+### 7. My Environment:
 
 Versions of R and specific packages used to create this project
 

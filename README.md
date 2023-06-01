@@ -64,6 +64,7 @@ The full script covers everything from **SMI205 Extension Pride amid Prejudice.R
 
 The replication package for 'Pride amid Prejudice' downloaded from <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/IROJ12>
 
+
 ### 6. SMI205-Extension-Pride-amid-Prejudice_files:
 
 Files created in the document **SMI205 Extension Pride amid Prejudice.Rmd:**

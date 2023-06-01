@@ -31,7 +31,7 @@ shape <- geojson_sf("Data/geoBoundaries-BIH-ADM2.geojson")
 #remove accents
 shape$shapeName = stri_trans_general(str = shape$shapeName, id = "Latin-ASCII")
 
-##Rename municipalities to allow merge by matching them
+###Rename municipalities to allow merge by matching them----
 
 shape[18, "shapeName"] <- "Bosanska Dubica (Kozarska Dubica)"
 shape[15, "shapeName"] <- "Bosanska Gradiska (Gradiska)"
@@ -76,27 +76,86 @@ resp_muni_shape$Freq <- resp_muni_shape$Freq %>% replace(is.na(.),0)
 #histogram of number of respondents by municipality
 ggplot(resp_muni_shape) +
   aes(x = Freq) +
-  geom_histogram(binwidth = 10)
+  geom_histogram(binwidth = 10) + theme_classic() +
+  labs(x = "Number of Respondents", 
+       y = "Frequency", 
+       title = "Figure 1. Number of \nRespondents per Municipality\n")
 
 #map of number of respondents by municipality
 ggplot(resp_muni_shape) +
   aes(geometry = geometry, fill = cut(Freq,
-                                      breaks = c(-1,0,10,20,30,40,50,320))) +
+                                      breaks = c(-1,0,10,20,30,40,50,320), 
+                                      labels = c("0", "1 to 10", "11 to 20", "21 to 30", "31 to 40", 
+                                                 "41 to 50", "50+"))) +
   geom_sf() +
   scale_fill_grey(start = 1, end = 0.1) +
-  labs(fill = "respondents")
+  labs(fill = "", title = "Figure 2. Number of Respondents\n") + theme_void()
 
 
-##descriptive
-ggplot(rep_shape_m) +
-  aes(x = as.character(Unemployed)) +
-  geom_bar() + scale_x_discrete("Unemployed")
+##distribution of variables
+man <- ggplot(rep_shape_m) +
+  aes(x = as.character(Men)) +
+  geom_bar() + scale_x_discrete("Male") + theme_minimal()
+
+unemp <- ggplot(rep_shape_m) +
+  aes(x = as.character(unemployed)) +
+  geom_bar() + scale_x_discrete("Unemployed") + theme_minimal()
+
+voteeu <- ggplot(rep_shape_m) +
+  aes(x = as.character(voteeu)) +
+  geom_bar() + scale_x_discrete("Vote EU") + theme_minimal()
+
+ethno <- ggplot(rep_shape_m) +
+  aes(x = as.character(ethnocentric)) +
+  geom_bar() + scale_x_discrete("Ethnocentric") + theme_minimal()
+
+relig <- ggplot(rep_shape_m) +
+  aes(x = as.character(religious)) +
+  geom_bar() + scale_x_discrete("Religiosity") + theme_minimal()
+
+edu <- ggplot(rep_shape_m) +
+  aes(x = Education) +
+  geom_bar() + theme_minimal()
+
+vote <- ggplot(rep_shape_m) +
+  aes(x = ethnic_vote_share) +
+  geom_bar() + scale_x_binned("Ethnic Vote Share") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+
+pop <- ggplot(rep_shape_m) +
+  aes(x = log_pop_density) +
+  geom_bar() + scale_x_binned("Log Population \nDensity") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+
+age <-  ggplot(rep_shape_m) +
+  aes(x = age) +
+  geom_bar() + scale_x_binned("Age") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, size = 5)) + theme_minimal()
+
+casualty <- ggplot(rep_shape_m) +
+  aes(x = log(casualty)) +
+  geom_histogram(binwidth = 0.5) + theme_minimal()
+
+ethnic <- ggplot(rep_shape_m) +
+  aes(x = as.character(ethnicity)) +
+  geom_bar() + scale_x_discrete("Ethnicity", limits = c("1","2","3","4","5"),
+                                labels = c("Bosnian", "Croat", "Serb", "Bosniak","other")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.7, hjust = 1)) + theme_minimal()
+
+treat <- ggplot(rep_shape_m) +
+  aes(x = as.character(treatment)) +
+  geom_bar() + scale_x_discrete("Treatment") + theme_minimal()
+
+ggarrange(treat, man, voteeu, ethno,
+          unemp, relig, casualty, ethnic,
+          pop, age, edu, vote,
+          nrow = 3, ncol = 4) %>% annotate_figure(top = "Figure 3: Distributions of Variables")
 
 
 ##Modelling----
 
 ###null model----
-#need to figure out which data to use to make the plot work
+
 null.m <- lmer(supportpride ~ (1|municipalitystr), data = rep_shape_m, na.action="na.exclude")
 summary(null.m)
 pred.null.m <- fitted(null.m)
@@ -122,13 +181,9 @@ ggplot(rep_shape_m) +
 #plot shows fanning out: most supportive become more supportive; least become less
 #add highlight to this to show sarajevo municipalities
 
-#this one better?
 u.slopes.m <- ranef(slopes.m, condVar = T)
 dotplot(u.slopes.m)
 
-reEX.slopes.m <-  REsim(slopes.m)
-plotREsim(reEX.slopes.m, labs = T)
-#only need one of these, they show the same thing. think plotREsim better?
 #shows pride only significantly affected most supportive municipalities, no effect elsewhere
 #this supports what paper found
 
@@ -231,7 +286,7 @@ slopes.final <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethn
                         (1 + treatment + ethnocentric + religious|municipalitystr),
                            data = rep_shape_m, na.action="na.exclude")
 
-#choose just one of these?
+
 u.slopes.final <- ranef(slopes.final, condVar = T)
 dotplot(u.slopes.final)
 

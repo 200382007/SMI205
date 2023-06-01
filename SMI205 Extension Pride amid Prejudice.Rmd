@@ -27,16 +27,13 @@ library(knitr)
 # A Multilevel Analysis of the Influence of LGBT+ Activism in Bosnia and Herzegovina
 
 ### Rpubs link: https://rpubs.com/sn200382007/1048441
-### GitHub Repository: [add url here if you have created a data or code repository, if not delete this line]
+### GitHub Repository: https://github.com/200382007/SMI205
 ### Study Preregistration form: https://rpubs.com/sn200382007/1043913
 
 ## Information about this replication project
-* Replication project based on paper [add full citation here and link to its published online version]
-* Replication method (select one from below):
-  + Used replication package available at [add citation + repository link here]
-  + Used materials obtained from authors
-  + Own replication following methods section of the paper
-  + Other - explain
+* This is a replication project based on Ayoub, P.M., Page, D. and Whitt, S. (2021) ‘Pride amid Prejudice: The Influence of LGBT+ Rights Activism in a Socially Conservative Society’, American Political Science Review, 115(2), pp. 467–485. Available at: https://doi.org/10.1017/S0003055420001082. 
+* I previously conducted a replication of the paper using the same methods and same data, based on the replication package available on the Harvard Dataverse Repository: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/IROJ12
+* This replication is an extension of the original paper using the same data and different methods in order to test robustness
 
 ## Workspace setup {.tabset .tabset-pills}
 
@@ -345,6 +342,7 @@ anova(slopes.3a, slopes.3b) #3a better
 
 
 ```{r model 4 include, echo=TRUE}
+#Example of model comparisons:
 anova(slopes.4b, slopes.4a) #4b better, effect of ethnocentrism varies by municipality
 ```
 
@@ -420,15 +418,6 @@ slopes.final <- lmer(supportpride ~ treatment + unemployed + Men + voteeu + ethn
                            data = rep_shape_m, na.action="na.exclude")
 ```
 
-
-```{r outputs all models, echo=FALSE}
-tab_model(slopes.1a, slopes.2a, slopes.3a, slopes.4b, slopes.5b, slopes.6a, 
-          slopes.7a, slopes.8a, slopes.9a, slopes.10a, slopes.11a,
-          show.icc = F, show.ci = F, show.p = F, p.style = "stars",
-          dv.labels = c("1","2", "3", "4","5","6","7","8","9","10","11"),
-          show.r2 = F, title = "Table 1. Fixed and Random Effects for Models 1 to 11",
-          pred.labels = c("Intercept", "Treatment","Unemployed","Male","Vote EU", "Ethnocentric", "Religiosity", "Bosniak", "Croat", "Serb", "Education","Ethnic Vote Share", "Age","Casualty", "Log Population\nDensity"))
-```
 
 ## 3. Results
 
@@ -541,7 +530,7 @@ Kosciw, J.G., Greytak, E.A. and Diaz, E.M. (2009) ‘Who, What, Where, When, and
 
 Maxwell, R. (2019) ‘Cosmopolitan Immigration Attitudes in Large European Cities: Contextual or Compositional Effects?’, American Political Science Review, 113(2), pp. 456–474. Available at: https://doi.org/10.1017/S0003055418000898.
 
-Runfola et al., (2020). 'geoBoundaries: A global database of political administrative boundaries', PLoS ONE 15(4): e0231866. <https://doi.org/10.1371/journal.pone.0231866> (accessed 20/05/2023)
+Runfola et al., (2020). 'geoBoundaries: A global database of political administrative boundaries', PLoS ONE 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866 (accessed 20/05/2023)
 
 Sremac, S. et al. (2015) ‘For the Sake of the Nations: Media, Homosexuality and Religio-Sexual Nationalisms in the Post-Yugoslav Space’, in Religious and Sexual Nationalisms in Central and Eastern Europe. Brill, pp. 52–73. Available at: https://doi.org/10.1163/9789004297791_005.
 
@@ -556,14 +545,25 @@ Waitt, G. and Stapel, C. (2011) ‘“Fornicating on floats”? The cultural pol
 
 ## Appendix
 
-### Appendix 1. My enviroment (full information) 
+### Appendix 1. Results from Iterative Modelling Process
+```{r echo=FALSE}
+tab_model(slopes.1a, slopes.2a, slopes.3a, slopes.4b, slopes.5b, slopes.6a, 
+          slopes.7a, slopes.8a, slopes.9a, slopes.10a, slopes.11a,
+          show.icc = F, show.ci = F, show.p = F, p.style = "stars",
+          dv.labels = c("1","2", "3", "4","5","6","7","8","9","10","11"),
+          show.r2 = F, title = "Table 1. Fixed and Random Effects for Models 1 to 11",
+          pred.labels = c("Intercept", "Treatment","Unemployed","Male","Vote EU", "Ethnocentric", "Religiosity", "Bosniak", "Croat", "Serb", "Education","Ethnic Vote Share", "Age","Casualty", "Log Population\nDensity"))
+```
+
+
+### Appendix 2. My enviroment (full information) 
 
 ```{r session}
 # Detailed information about my environment
 sessionInfo()
 ```
 
-### Appendix 2. Entire R code used in the project
+### Appendix 3. Entire R code used in the project
 
 ```{r whole code, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```

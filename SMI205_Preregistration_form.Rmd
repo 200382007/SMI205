@@ -1,0 +1,161 @@
+---
+title: "SMI205_Preregistration_form"
+author: "200382007"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+# By default, the code chunks are hidden. 
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r packages and data}
+# Load packages and data from the start
+```
+
+```{=html}
+<!-- 
+The text surrounded by these arrows is for your information and is hidden when the final document is knitted.
+-->
+```
+# 1. My replication project
+
+```{=html}
+<!-- 
+Introduce the paper you have chosen for the replication project. Please add a  hyperlink in the doi number of the article. This is fine if you just copy this information from Assessment 1.
+-->
+```
+This is an extension of the paper "Pride amid Prejudice: The Influence of LGBT+ Rights Activism in a Socially Conservative Society" (Ayoub et al., 2021). The paper found that the Pride Parade held in Sarajevo improved LGBT+ acceptance within the city, but this effect did not diffuse throughout the rest of the country, meaning attitudes towards LGBT+ people neither improved nor worsened throughout Bosnia and Herzegovina following the Pride. Previously, I conducted a replication of the analysis methods to test the two main hypotheses: that Pride increased support for LGBT+ activism, and Pride had the greatest effect on individuals in close proximity to the event. My results affirmed the findings of the original paper.
+
+# 2. Planned project extension
+
+## 2.1. Rationale for a new hypothesis
+
+```{=html}
+<!--
+Present a new claim which you would like to test by extending the analysis of Claim X you decided to focus on in your replication project. Explain how your analysis extents the original study and, more broadly, how it contributes to the body of literature on the topic.
+Remember, make your counter-argument scientific by referring to evidence, like past research or other data. 
+-->
+```
+I intend to extend this study to investigate how municipal context affects the likelihood of acceptance, and how this may have changed following the Pride event. The original paper only examines the difference between Sarajevo and the rest of the country, and is therefore limited in the depth that it can study the potential diffusion effect as it groups municipalities on the border of the city with those on the opposite side of the country. Additionally, the Pride took place only within the Sarajevo Centar Municipality, and so its effect may differ within the city: individuals from other Sarajevo municipalities could choose to travel to the Pride whereas individuals within Centar would be affected as the default.
+
+The study recognises that age and education level are important factors for attitude and that this contributes to Sarajevo's higher level of acceptance, but does not investigate whether this is the case for other cities which may be demographically or contextually similar. The demographics of a municipality as well as an area's collective memory - such as of wartime violence during the Bosnian Civil War - can impact the likelihood of an individual developing an 'us-vs-them' attitude, which may extend beyond ethnic identity and affect acceptance of other minority groups such as LGBT+ people (Hadzic et al., 2020; Swimelar, 2020).
+
+## 2.2. Prediction
+
+```{=html}
+<!--
+Write your new argument in a form of a hypothesis. 
+Neatly summarise what results you are expecting to get and whether you expect them to be similar or different from the original study, and why.
+-->
+```
+> Hypothesis 1: communities affect an individual's acceptance of LGBT+ people and their response to LGBT+ activism
+>
+> Hypothesis 2: municipalities with the higher ethnic vote-shares will have more negative responses to Pride
+
+Swimelar (2020) explains how nationalism portrays LGBT+ identities as a threat to the nation's security, and is leveraged by politicians to fear-monger that LGBT people will undermine the ethnic group's imagined community as these identities are seen as being mutually exclusive. Thus, it could be predicted that municipalities where ethnic political parties have the highest vote share - and therefore foster a strong 'us vs them' community identity of nationalism - may react the most negatively to the Pride Parade (Hadzic et al., 2020).
+
+It could be predicted that the effects of Pride may be seen most strongly in Centar, Sarajevo. While not within the scope of this study extension, these effects may also remain for longer as Pride parades have been found to create positive location-based memories for those who attend (Waitt and Stapel, 2011). In line with the original study, there is likely to be relatively strong diffusion around Sarajevo as people will travel between municipalities; this may spread to neighbouring municipalities outside of the city limits as people commute and city boundaries are fluid. Other cities with some existing LGBT+ communities may see an increase in acceptance as Pride could facilitate conversation between members of the community and the public.
+
+Municipality-level indicators may explain some variation in an individual's acceptance of and reaction to pride, as Bosnia is documented to have a strong sense of collective identity within ethnic groups (Swimelar, 2020). Studies of US schools found that poverty, religion, and education levels within a community affect the level and type of homophobia experienced inside of schools, showing the effect that community characteristics can have on individual attitudes and experiences (Kosciw, Greytak and Diaz, 2009).
+
+# 3. Data
+
+```{=html}
+<!--
+List all data sources you will use and describe whether the same data was used in the original study.
+If you constructed any new datasets on a basis of multiple secondary data, carefully describe the process and additional data sources.
+-->
+```
+This extension will use a composite of three different datasets. It will be primarily based on the survey data from the questionnaire conducted by Ayoub et al. (2021) and provided on the Harvard Dataverse Repository as part of the replication materials. This dataset already contains twelve municipality-level variables taken from research conducted by Hadzic et al. (2020); as I intend to investigate municipality-level effects in more detail, I will select further variables to use from the Hadzic et al. dataset - also available through the Harvard Dataverse Repository. To assist with spatial analysis of the diffusion effect, I will also be using shapefile data as provided by the United Nations' Office for the Coordination of Humanitarian Affairs' Humanitarian Data Exchange service (Runfola et al., 2020).
+
+# 4. Data analysis plan
+
+## 4.1. Model specification
+
+```{=html}
+<!--
+Explain what methods of data analysis you will use to answer your hypothesis. This is likely to be a regression model, so explain what kind of regression it is and why.
+Briefly explain how your model specification differs from the one used for Claim X.
+-->
+```
+I will investigate these claims using a random slopes model where the individual respondents constitute Level 1 and their municipalities Level 2. This will allow for closer investigation of the diffusion effect both within Sarajevo city and the rest of Bosnia and Herzegovina; it will also examine the extent that an individual's response to Pride is influenced by their community, with the context of strong ethnic and religious shared identities following the Bosnian Civil War. Using a random slopes model allows us to observe if responses to Pride varied by municipality: ie. did attitudes improve in some places and worsen in others, and to what intensity. 
+
+## 4.2. Variables
+
+```{=html}
+<!--
+Describe all variables that you will use in your data analysis. Explain how they were measured and whether they were manipulated in any way. 
+-->
+```
+The dependent variable will remain the same as the original study: support for pride, on a scale of 1 to 4. The Level 2 variables will be those produced by Hadzic et al,. (2020): ethnic vote share, casualty, population density, and average age and income. Level 1 variables will include socio-economic measures, as well as the predictor variable of treatment - the dummy for whether the individual was surveyed before or after Pride.
+
+## 4.3. Interference criteria
+
+```{=html}
+<!--
+What criteria will you use to make inferences? These could be P-values, confidence intervals, and effect sizes.
+-->
+```
+The criteria of p\<0.05 will be used to determine whether statistical test results significantly disprove the null hypothesis.
+
+## 4.4. Data exclusion and Missing Data
+
+```{=html}
+<!-- 
+How will you determine what data or observations, if any, to exclude from your analyses? How will outliers be handled? Will you use any check to determine it?
+-->
+```
+Around 200 respondents are estimated to be omitted from the analysis on account of having no recorded municipality.
+
+## 4.5. Exploratory data analysis
+
+```{=html}
+<!-- 
+If you plan to explore your data to look for unexpected differences or relationships, please describe those tests here. 
+An exploratory test is any test where a prediction is not made up front, or there are multiple possible tests that you are going to use. A statistically significant finding in an exploratory test is a great way to form a new confirmatory hypothesis. 
+-->
+```
+Some level of exploratory analysis will take place as I will eliminate insignificant variables to create a more concise model.
+
+# 5. Session info
+
+This preregistration form was completed in the following R environment:
+
+```{r session}
+sessionInfo()
+```
+
+# 6. References
+
+```{=html}
+<!--
+Add a list of referenced sources here, so datasets and literature.
+-->
+```
+Ayoub, P., Page, D. and Whitt, S. (2021) \'Replication Data for: Pride amid Prejudice: The Impact of LGBT+ Rights Activism in a Socially Conservative Society\'. Harvard Dataverse. Available at: <https://doi.org/10.7910/DVN/IROJ12>. (accessed 20/05/2023)
+
+Ayoub, P.M., Page, D. and Whitt, S. (2021) \'Pride amid Prejudice: The Influence of LGBT+ Rights Activism in a Socially Conservative Society\', *American Political Science Review*, 115(2), pp. 467--485. Available at: <https://doi.org/10.1017/S0003055420001082>.
+
+Bartlett J. (2021). [OSF preregistration template.Rmd](https://github.com/BartlettJE/BartlettJE.github.io/blob/master/RMarkdown-scripts/OSF%20preregistration%20template.Rmd). GitHub (accessed 03/05/2023)
+
+*Bosnia and Herzegovina - Subnational Administrative Boundaries - Humanitarian Data Exchange* (no date). Available at: <https://data.humdata.org/dataset/geoboundaries-admin-boundaries-for-bosnia-and-herzegovina> (accessed 20/05/2023).
+
+Bowman, S. D., DeHaven, A. C., Errington, T. M., Hardwicke, T. E., Mellor, D. T., Nosek, B. A., & Soderberg, C. K. (2020). OSF Prereg Template. <https://doi.org/10.31222/osf.io/epgjd>. OSF (accessed 03/05/2023)
+
+Hadzic, D., Carlson, D. and Tavits, M. (2020) \'How Exposure to Violence Affects Ethnic Voting\', *British Journal of Political Science*, 50(1), pp. 345--362. Available at: <https://doi.org/10.1017/S0007123417000448>.
+
+Hadzic, D., Carlson, D. and Tavits, M (2017) \'Replication Data for: How Exposure to Violence Affects Ethnic Voting\'. Harvard Dataverse. Available at: <https://doi.org/10.7910/DVN/EUAIFA>. (accessed 20/05/2023)
+
+Kosciw, J.G., Greytak, E.A. and Diaz, E.M. (2009) \'Who, What, Where, When, and Why: Demographic and Ecological Factors Contributing to Hostile School Climate for Lesbian, Gay, Bisexual, and Transgender Youth\', *Journal of Youth and Adolescence*, 38(7), pp. 976--988. Available at: <https://doi.org/10.1007/s10964-009-9412-1>.
+
+Runfola et al., (2020). 'geoBoundaries: A global database of political administrative boundaries', PLoS ONE 15(4): e0231866. <https://doi.org/10.1371/journal.pone.0231866> (accessed 20/05/2023)
+
+Swimelar, S. (2020) \'LGBT Rights in Bosnia: The Challenge of Nationalism in the Context of Europeanization\', *Nationalities Papers*, 48(4), pp. 768--790. Available at: <https://doi.org/10.1017/nps.2019.65>.
+
+Waitt, G. and Stapel, C. (2011) \'\"Fornicating on floats\"? The cultural politics of the Sydney Mardi Gras Parade beyond the metropolis\', *Leisure Studies*, 30(2), pp. 197--216. Available at: <https://doi.org/10.1080/02614367.2010.509445>.

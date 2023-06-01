@@ -300,7 +300,11 @@ ggplot(rep_shape_m) +
   aes(x=treatment, y = pred.slopes.final, group = municipalitystr) +
   geom_line() #no longer fans out how basic model did. 
 
+<<<<<<< HEAD
 ##Plots and Results----
+=======
+##Results----
+>>>>>>> 6f31bb0f4316065cfbf05aa1c144e4186facf106
 
 ###
 pred.slopes.final <- fitted(slopes.final)

@@ -12,7 +12,11 @@ This is a replication project based on Ayoub, P.M., Page, D. and Whitt, S. (2021
 
 -   *.gitignore*
 
+<<<<<<< HEAD
 -   **README.md**: this file
+=======
+-   **README.md** and **README.html**: this file
+>>>>>>> 6f31bb0f4316065cfbf05aa1c144e4186facf106
 
 -   **SMI205 Extension Pride amid Prejudice.Rmd:** written assignment for the project, including snippets of code and plots from the scripts included here
 
